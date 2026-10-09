@@ -214,6 +214,29 @@ see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and
 
 ## Publish to Cloudflare
 
+### Automatic updates from GitHub
+
+In [buloxdev/territory-atlas](https://github.com/buloxdev/territory-atlas), pushes
+to `main` run the tests, build the public release, and publish it to
+[territory-atlas.pages.dev](https://territory-atlas.pages.dev) using GitHub Actions.
+Failed tests or builds stop publishing. Pull requests and other branches are
+verified without publishing. Check the repository's **Actions** tab for progress
+or use **Run workflow** on `main` to retry a deployment.
+
+One-time repository configuration:
+
+- Actions secret `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with
+  **Account → Cloudflare Pages → Edit**, scoped to your hosting account.
+- Actions variable `CLOUDFLARE_ACCOUNT_ID`: the hosting account's ID.
+
+The token is stored in GitHub's encrypted secrets and is passed only to the
+publishing step. It is not part of the source, source download, or website.
+If you fork this repo, change the workflow's repository guard and project name
+to yours before configuring these credentials. See
+[Cloudflare's continuous integration guide](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/).
+
+### Publish from your computer
+
 Use Cloudflare Pages Direct Upload through Wrangler. A GitHub connection,
 database, and visitor login are not required. Use Node.js 24 LTS.
 
@@ -234,7 +257,8 @@ npm run deploy
 This runs the tests, builds the public release, and uploads
 `output/cloudflare-site/` directly to the existing **territory-atlas** Pages
 project. No ZIP download or dashboard upload is needed. **This command publishes
-the website.** Editing code or pushing it to GitHub does not publish automatically.
+the website.** Local edits stay local until you publish directly or push them to
+`main` in the configured GitHub repository.
 
 If you fork this repo, first create your own Pages Direct Upload project.
 Change `--project-name territory-atlas` in `package.json` to your project name

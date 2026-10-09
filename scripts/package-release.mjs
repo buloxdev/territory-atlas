@@ -11,7 +11,7 @@ const source = path.join(stage, 'territory-atlas');
 try {
   fs.mkdirSync(source);
   // Explicit allowlist: never package credentials, account data, desktop bundles or node_modules.
-  for (const name of ['src', 'tests', 'public', 'scripts', 'examples', 'docs', 'package.json', 'package-lock.json', 'vite.config.js', 'index.html', 'README.md', 'LICENSE', 'CONTRIBUTING.md', 'THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_LICENSES.txt', '.gitignore', '.nvmrc']) {
+  for (const name of ['src', 'tests', 'public', 'scripts', 'examples', 'docs', '.github', 'package.json', 'package-lock.json', 'vite.config.js', 'index.html', 'README.md', 'LICENSE', 'CONTRIBUTING.md', 'THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_LICENSES.txt', '.gitignore', '.nvmrc']) {
     fs.cpSync(path.join(root, name), path.join(source, name), { recursive: true });
   }
   fs.mkdirSync(site, { recursive: true });
