@@ -2,9 +2,13 @@
 
 The project's MIT license covers Territory Atlas source, not third-party
 libraries, fonts, hosted services, or data. Preserve their applicable notices
-when redistributing source or built assets. Installed dependency license
+when redistributing source or built assets. Runtime dependency license
 texts and declared-license information are collected in [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt);
 regenerate with `npm run licenses` after dependency changes.
+
+Build and deployment tools (Vite, the React plugin, and Wrangler) are installed
+separately through npm and are not bundled in the public website. Their packages
+retain their upstream licenses.
 
 `worker-f` declares MIT in its package metadata but ships no standalone license
 or copyright notice; the collection identifies that omission and includes its

@@ -2,6 +2,8 @@
 
 **A free, open-source territory map for freight and industrial sales reps. Import your accounts, explore nearby facilities, and plan customer visits.**
 
+Source and contributions: [buloxdev/territory-atlas](https://github.com/buloxdev/territory-atlas).
+
 Import a customer spreadsheet and use your own TomTom API key to search for
 businesses in an area you draw. Runs locally in your browser without a
 Territory Atlas account or an application backend. Your saved account records
@@ -210,23 +212,45 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Territory Atlas source is licensed under
 see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and
 [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt).
 
-## Publish without GitHub
+## Publish to Cloudflare
 
-Use Cloudflare Pages Direct Upload. No Git repository, database, or app login is required.
+Use Cloudflare Pages Direct Upload through Wrangler. A GitHub connection,
+database, and visitor login are not required. Use Node.js 24 LTS.
+
+Connect your Cloudflare account once on each development machine:
 
 ```bash
 npm ci
-npm test
-npm run release
+npm run cloudflare:login
+npm run cloudflare:status
 ```
 
-The release command prepares:
+For every website update, run:
+
+```bash
+npm run deploy
+```
+
+This runs the tests, builds the public release, and uploads
+`output/cloudflare-site/` directly to the existing **territory-atlas** Pages
+project. No ZIP download or dashboard upload is needed. **This command publishes
+the website.** Editing code or pushing it to GitHub does not publish automatically.
+
+If you fork this repo, first create your own Pages Direct Upload project.
+Change `--project-name territory-atlas` in `package.json` to your project name
+and `--branch main` to its production branch. Cloudflare supplies a public
+HTTPS `pages.dev` address. Your Cloudflare credentials stay outside the source
+repo; do not commit credentials or provider keys.
+
+To prepare files without publishing, use `npm run release`. It prepares:
 
 - `output/territory-atlas-cloudflare.zip`: upload-ready website, with `index.html` at the root.
 - `output/cloudflare-site/`: the same website as a folder.
 - `output/territory-atlas-source.zip`: MIT-licensed source code, also downloadable from the public website’s **Privacy & data** panel.
 
-In Cloudflare **Workers & Pages**, create a **Pages** project using **Direct Upload / drag and drop**. Upload the website ZIP or the contents of the site folder. Do not upload the source ZIP as the website. Cloudflare supplies a public HTTPS `pages.dev` address; you can connect your own domain. Redeploy the updated website ZIP when you make changes. No GitHub connection is needed. See [Cloudflare Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/).
+The ZIP remains available for optional manual uploads. See
+[Cloudflare Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/)
+for Wrangler and dashboard instructions.
 
 The public package has automatic address lookup disabled to avoid relying on a public geocoding endpoint for aggregate website traffic. Spreadsheet imports use the bundled city index. Facility coordinates can be entered directly. An operator can set `geocoding-config.json` to an appropriate Nominatim-compatible endpoint with browser access enabled. Provider terms and usage requirements still apply. No provider API key is shipped with the website or source.
 
