@@ -27,8 +27,8 @@ export const Crosshair = ({ className = '' }) => <svg className={`bp-glyph ${cla
 
 export const Crosses = () => <>{['tl', 'tr', 'bl', 'br'].map(corner => <span key={corner} className={`bp-cross ${corner}`} aria-hidden="true"/>)}</>;
 
-export function SheetHead({ number, title, note, as: Heading = 'h2', id }) {
-  return <div className="bp-sheet-head"><span className="bp-sheet-no">{number}</span><Heading id={id}>{title}</Heading>{note && <span className="bp-sheet-note">{note}</span>}</div>;
+export function SheetHead({ number, title, note, as: Heading = 'h2', id, children }) {
+  return <div className="bp-sheet-head"><span className="bp-sheet-no">{number}</span><Heading id={id}>{title}</Heading>{note && <span className="bp-sheet-note">{note}</span>}{children}</div>;
 }
 
 export function TitleBlock({ rows }) {

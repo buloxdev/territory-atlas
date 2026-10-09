@@ -1,3 +1,5 @@
+import { coordinate, hasMapCoordinates } from './coordinates.js';
+
 // Schematic line-work for the Blueprint territory drawing. Outlines are simplified
 // state borders (lng, lat) for the Midwest; they are illustrative, not survey grade.
 export const OUTLINES = {
@@ -16,8 +18,7 @@ const STATE_NAMES = { WI: 'WISCONSIN', IL: 'ILLINOIS', IN: 'INDIANA', OH: 'OHIO'
 const MILES_PER_DEGREE = 69;
 const MAX_BALLOONS = 12;
 const round = value => Math.round(value * 10) / 10;
-const coordinate = value => value === '' || value == null ? NaN : Number(value);
-const isPlaced = location => Number.isFinite(coordinate(location.lat)) && Number.isFinite(coordinate(location.lng)) && Math.abs(coordinate(location.lat)) <= 85;
+const isPlaced = hasMapCoordinates;
 
 // Lays out a numbered drawing: points in the middle, callout balloons in two gutters.
 export function layoutTerritoryDrawing(locations, { width = 564, height = 500, gutter = 120, pad = 36, highlightMiles = 50 } = {}) {

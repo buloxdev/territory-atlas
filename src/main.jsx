@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import L from 'leaflet';
 import Building2 from 'lucide-react/dist/esm/icons/building-2.mjs';
@@ -7,15 +7,15 @@ import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right.mjs';
 import Download from 'lucide-react/dist/esm/icons/download.mjs';
 import LocateFixed from 'lucide-react/dist/esm/icons/locate-fixed.mjs';
 import MapPin from 'lucide-react/dist/esm/icons/map-pin.mjs';
-import Pencil from 'lucide-react/dist/esm/icons/pencil.mjs';
 import Plus from 'lucide-react/dist/esm/icons/plus.mjs';
 import Search from 'lucide-react/dist/esm/icons/search.mjs';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2.mjs';
 import Upload from 'lucide-react/dist/esm/icons/upload.mjs';
 import X from 'lucide-react/dist/esm/icons/x.mjs';
 import 'leaflet/dist/leaflet.css';
 import './styles.css';
-import Atlas3D from './Atlas3D';
+// Keep all map CSS ahead of Blueprint, even when the 3D JavaScript loads later.
+import 'maplibre-gl/dist/maplibre-gl.css';
+import './atlas3d.css';
 
 import LaunchApp, { useTerritory } from './LaunchApp.jsx';
 import { geocodeAddress } from './geocoding.js';
@@ -23,8 +23,22 @@ import DiscoveryPanel from './DiscoveryPanel.jsx';
 import AreaControls from './AreaControls.jsx';
 import useLeafletDiscoveryMap from './useLeafletDiscoveryMap.js';
 import { mergeDiscoveredLocations } from './discovery.js';
-import { Crosshair } from './Blueprint.jsx';
+import { Crosshair, Ruler, SheetHead } from './Blueprint.jsx';
+import { AccountRow, AccountDetails, isLocationVerified } from './AccountPresentation.jsx';
+import { hasMapCoordinates } from './coordinates.js';
 import './blueprint.css';
+
+const Atlas3D = lazy(() => import('./Atlas3D.jsx'));
+
+class MapLoadBoundary extends React.Component {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    return this.state.failed
+      ? <div className="bp-map-loading" role="alert">The 3D map could not load. <a href="?view=3d">Try again</a><a href="?view=2d">Open 2D map</a></div>
+      : this.props.children;
+  }
+}
 
 // Blueprint ink: customers are solid white, prospects a lighter drafting blue drawn hollow.
 const COLORS = {
@@ -42,11 +56,6 @@ const LOCATION_TYPES = [
   'Contact Office',
   'Imported Location',
 ];
-
-function isLocationVerified(location) {
-  if (location.verificationStatus) return location.verificationStatus === 'Verified';
-  return Boolean(location.verifiedUrl);
-}
 
 function markerIcon(location, selected) {
   const color = COLORS[location.status] || COLORS.Prospect;
@@ -92,7 +101,7 @@ function NetworkMap({ locations, selectedId, onSelect, fitSignal, layoutSignal, 
     const layer = markersRef.current;
     if (!layer) return;
     layer.clearLayers();
-    locations.forEach((location) => {
+    locations.filter(hasMapCoordinates).forEach((location) => {
       const label = document.createElement('div');
       const company = document.createElement('strong');
       company.textContent = location.company;
@@ -109,14 +118,15 @@ function NetworkMap({ locations, selectedId, onSelect, fitSignal, layoutSignal, 
 
   useEffect(() => {
     const map = mapRef.current;
-    if (selected && map) {
+    if (selected && hasMapCoordinates(selected) && map) {
       map.flyTo([selected.lat, selected.lng], Math.max(map.getZoom(), 8), { duration: 0.8 });
     }
   }, [selected]);
 
   useEffect(() => {
-    if (!locations.length || !mapRef.current) return;
-    const bounds = L.latLngBounds(locations.map((location) => [location.lat, location.lng]));
+    const placed = locations.filter(hasMapCoordinates);
+    if (!placed.length || !mapRef.current) return;
+    const bounds = L.latLngBounds(placed.map((location) => [location.lat, location.lng]));
     mapRef.current.fitBounds(bounds, { padding: [72, 72], maxZoom: 7, animate: true, duration: 0.8 });
   }, [fitSignal]);
 
@@ -309,6 +319,10 @@ function App() {
   const prospectCount = locations.filter((location) => location.status === 'Prospect').length;
   const customerReviewCount = locations.filter((location) => location.status === 'Customer' && !isLocationVerified(location)).length;
 
+  useEffect(() => {
+    if (selectedId && !filtered.some(location => location.id === selectedId)) setSelectedId(null);
+  }, [filtered, selectedId]);
+
   function saveLocation(location) {
     setLocations((current) => current.some((item) => item.id === location.id)
       ? current.map((item) => item.id === location.id ? location : item)
@@ -368,24 +382,26 @@ function App() {
         </div>
       </header>
 
+      <Ruler />
+
       <section className={`workspace ${ledgerCollapsed && !discoveryOpen ? 'is-ledger-collapsed' : ''} ${discoveryOpen ? 'is-discovering' : ''}`}>
         <aside className="ledger">
           {discoveryOpen ? <DiscoveryPanel area={area} drawing={drawing} ready={Boolean(leafletMap)} locations={locations} onDraw={startAreaDrawing} onCancelDraw={() => { setArea(areaBeforeDrawing.current); setDrawing(false); }} onAreaChange={setArea} onResults={setDiscoveryResults} onFocus={focusDiscovered} onAdd={addDiscovered} onClose={closeBusinessSearch} activeResult={activeResult} shapeError={shapeError}/> : <>
           <div className="ledger-top">
             <div className="ledger-label-row">
-              <div className="section-label"><span>01</span> LOCATION LEDGER</div>
+              <SheetHead number="SHEET 2" title="Account schedule" note={`${String(locations.length).padStart(2, '0')} LOC`} as="p" />
               <button className="ledger-collapse" onClick={() => setLedgerCollapsed(true)} aria-label="Hide location panel" title="Hide location panel"><ChevronLeft size={15} /></button>
             </div>
             <button className="atlas-discover-button" disabled={!leafletMap} onClick={() => { setDiscoveryOpen(true); setSelectedId(null); }}>Find nearby businesses</button>
             <p className="account-storage-note">Import once. Your accounts stay saved in this browser when you refresh or return to the same site. Use Backup to keep a copy or move to another browser or device; clearing site storage removes saved accounts.</p>
             <div className="search-field">
               <Search size={15} />
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="SEARCH COMPANY OR CITY" />
-              {search && <button onClick={() => setSearch('')}><X size={14} /></button>}
+              <input aria-label="Search accounts" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="SEARCH COMPANY OR CITY" />
+              {search && <button aria-label="Clear search" onClick={() => setSearch('')}><X size={14} /></button>}
             </div>
             <div className="status-tabs">
               {['All', 'Customer', 'Prospect'].map((item) => (
-                <button key={item} className={status === item && !reviewOnly ? 'active' : ''} onClick={() => { setStatus(item); setReviewOnly(false); }}>
+                <button key={item} aria-pressed={status === item && !reviewOnly} className={status === item && !reviewOnly ? 'active' : ''} onClick={() => { setStatus(item); setReviewOnly(false); }}>
                   {item}
                   <b>{item === 'All' ? locations.length : item === 'Customer' ? customerCount : prospectCount}</b>
                 </button>
@@ -403,21 +419,15 @@ function App() {
             </button>
           </div>
 
-          <div className="location-list">
+          <div className="atlas-location-list">
             {filtered.map((location, index) => (
-              <button
+              <AccountRow
                 key={location.id}
-                className={`location-row ${selectedId === location.id ? 'is-selected' : ''}`}
-                onClick={() => selectLocation(location.id)}
-                style={{ '--delay': `${index * 45}ms` }}
-              >
-                <span className="row-index">{String(index + 1).padStart(2, '0')}</span>
-                <span className="row-main">
-                  <strong>{location.company}</strong>
-                  <small>{location.city}, {location.state} · {location.locationType}</small>
-                </span>
-                <span className="status-light" style={{ '--status': COLORS[location.status] }} />
-              </button>
+                location={location}
+                index={index}
+                selected={selectedId === location.id}
+                onSelect={() => selectLocation(location.id)}
+              />
             ))}
             {!filtered.length && <div className="empty-state">NO MATCHING LOCATIONS</div>}
           </div>
@@ -436,7 +446,7 @@ function App() {
           <div className="map-grid" />
           {ledgerCollapsed && !discoveryOpen && <button className="ledger-reopen" onClick={() => setLedgerCollapsed(false)} aria-label="Show location panel" title="Show location panel"><ChevronRight size={16} /></button>}
           <div className="map-heading">
-            <span className="section-label"><span>02</span> NETWORK VIEW</span>
+            <SheetHead number="SHEET 3" title="Network view" as="p" />
             <strong>USA / ACCOUNT LOCATIONS</strong>
           </div>
           <button className="fit-button" onClick={() => setFitSignal((value) => value + 1)}>
@@ -445,26 +455,15 @@ function App() {
           <div className="coordinates">39.8283° N&nbsp;&nbsp; 98.5795° W</div>
 
           {selected && !discoveryOpen && (
-            <aside className="inspector">
-              <button className="inspector-close" onClick={() => setSelectedId(null)}><X size={15} /></button>
-              <span className="eyebrow">SELECTED LOCATION</span>
-              <h2>{selected.company}</h2>
-              <div className="inspector-status" style={{ '--status': COLORS[selected.status] }}>
-                <i /> {selected.status.toUpperCase()}
-              </div>
-              <dl>
-                <div><dt>TYPE</dt><dd>{selected.locationType}</dd></div>
-                <div><dt>ADDRESS</dt><dd>{selected.address}</dd></div>
-                <div><dt>VERIFY</dt><dd className={isLocationVerified(selected) ? 'verification-verified' : 'verification-review'}>{isLocationVerified(selected) ? 'Verified' : 'Needs review'}</dd></div>
-                <div><dt>SOURCE</dt><dd>{selected.source}</dd></div>
-              </dl>
-              <button className="inspector-edit" onClick={openEditLocation}><Pencil size={13} /> EDIT LOCATION</button>
-              <button className="inspector-delete" onClick={deleteSelectedLocation}><Trash2 size={13} /> DELETE LOCATION</button>
+            <AccountDetails location={selected} onClose={() => setSelectedId(null)} actions={[
+              { label: 'Edit location', onClick: openEditLocation },
+              { label: 'Delete location', onClick: deleteSelectedLocation },
+            ]}>
               <div className="source-links">
                 {selected.sourceUrl && <a href={selected.sourceUrl} target="_blank" rel="noreferrer">VIEW SOURCE <ChevronRight size={13} /></a>}
                 {selected.verifiedUrl && <a href={selected.verifiedUrl} target="_blank" rel="noreferrer">VERIFY LOCATION <ChevronRight size={13} /></a>}
               </div>
-            </aside>
+            </AccountDetails>
           )}
         </section>
       </section>
@@ -480,4 +479,4 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<LaunchApp>{new URLSearchParams(window.location.search).get('view') === '2d' ? <App /> : <Atlas3D />}</LaunchApp>);
+createRoot(document.getElementById('root')).render(<LaunchApp>{new URLSearchParams(window.location.search).get('view') === '2d' ? <App /> : <MapLoadBoundary><Suspense fallback={<div className="bp-map-loading" role="status">Loading the 3D map… <a href="?view=2d">Open 2D map</a></div>}><Atlas3D /></Suspense></MapLoadBoundary>}</LaunchApp>);

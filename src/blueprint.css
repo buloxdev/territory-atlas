@@ -424,7 +424,35 @@ body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
 
 /* ---------- 2D management view ---------- */
 
-.app-shell { background: var(--bg); color: var(--fg); }
+.bp-map-loading { padding: 32px 24px; color: var(--fg-muted); font: 10px/1.6 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.bp-map-loading a { color: var(--fg); margin-left: 12px; }
+.ledger-label-row > .bp-sheet-head { flex: 1; min-width: 0; flex-wrap: wrap; gap: 8px; }
+.ledger-label-row .bp-sheet-note { margin-left: auto; }
+.ledger .atlas-location-list { min-height: 0; }
+.map-stage > .atlas-details { z-index: 500; left: 24px; bottom: 24px; max-height: calc(100% - 130px); overflow-y: auto; }
+.atlas-details > .bp-sheet-head > p { margin: 0; }
+.map-stage .source-links { flex-wrap: wrap; }
+.map-heading .bp-sheet-head { padding-bottom: 8px; gap: 10px; }
+.atlas-detail-actions button:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 560px) {
+  .ledger .atlas-location-list { display: block; margin: 0 16px; border-top: 1px solid var(--line); }
+  .ledger .atlas-location { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+  .map-stage > .atlas-details { left: 12px; bottom: 12px; width: calc(100% - 60px); max-height: calc(100% - 100px); }
+  .map-stage .atlas-detail-actions { flex-wrap: wrap; }
+  .map-stage .atlas-details-body { padding: 10px 12px; }
+  .map-stage .atlas-details h2 { font-size: 19px; }
+  .map-stage .atlas-details-body > p { margin-top: 6px; font-size: 12px; line-height: 1.35; }
+  .map-stage .atlas-chips { margin-top: 8px; }
+  .map-stage .atlas-chips span { height: 20px; }
+  .map-stage .atlas-spec { margin-top: 10px; }
+  .map-stage .atlas-spec div { padding: 6px 8px; }
+  .map-stage .atlas-spec dd { font-size: 11px; }
+  .map-stage .atlas-detail-actions { margin-top: 10px; gap: 8px; }
+  .map-stage .atlas-detail-actions button { min-height: 34px; font-size: 9px; padding: 0 8px; }
+}
+
+.app-shell { grid-template-rows: 68px 22px minmax(0, 1fr) 29px; background: var(--bg); color: var(--fg); }
 .command-bar { border-bottom: 1px solid var(--line); background: var(--panel-glass); }
 .brand-block { gap: 10px; border-right-color: var(--line); }
 .brand-block strong { font: 800 15px/1 var(--font-sans); letter-spacing: -.01em; color: var(--fg); }
@@ -507,6 +535,16 @@ body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
 .account-storage-note { color: var(--faint); font-family: var(--font-sans); }
 
 /* ---------- Responsive ---------- */
+
+@media (max-width: 720px) {
+  .app-shell { grid-template-rows: auto 22px minmax(0, 1fr) 29px; }
+  .ledger-top .account-storage-note { display: none; }
+  .ledger .atlas-location-list { flex: 1; }
+  .map-heading { max-width: calc(100% - 170px); padding: 10px; }
+  .map-heading .bp-sheet-head { flex-wrap: wrap; gap: 6px; }
+  .map-heading .bp-sheet-head > p { font-size: 10px; }
+  .map-heading strong { display: none; }
+}
 
 @media (max-width: 960px) {
   .launch-hero { grid-template-columns: 1fr; gap: 48px; }
