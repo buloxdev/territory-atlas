@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createFreehandArea, areaFeature, containsPoint, translateArea, resizeArea, areaHandles, areaBounds, areaCenter, validateSearchArea } from '../src/search-area.js';
+import { createFreehandArea, areaFeature, containsPoint, translateArea, resizeArea, areaHandles, areaBounds, areaCenter, validateSearchArea, METERS_PER_MILE, MAX_SEARCH_RADIUS_METERS } from '../src/search-area.js';
 import { buildDiscoveryQuery, prepareDiscoveredLocations } from '../src/discovery.js';
 
 const circle = { lng: -89, lat: 42, radius: 2000 };
@@ -20,8 +20,20 @@ test('freehand preserves an irregular outline, closes it, and excludes points in
 test('rejects crossings, collapsed outlines, excessive extents, and invalid coordinates', () => {
   assert.throws(() => createFreehandArea([{ lng: -89, lat: 42 }, { lng: -88.98, lat: 42.02 }, { lng: -89, lat: 42.02 }, { lng: -88.98, lat: 42 }]), /cross/);
   assert.throws(() => createFreehandArea([{ lng: -89, lat: 42 }, { lng: -89, lat: 42 }, { lng: -89, lat: 42 }]), /outline/);
-  assert.throws(() => createFreehandArea([{ lng: -89, lat: 42 }, { lng: -87, lat: 42 }, { lng: -89, lat: 44 }]), /31.1 miles/);
+  assert.throws(() => createFreehandArea([{ lng: -89, lat: 42 }, { lng: -85, lat: 42 }, { lng: -89, lat: 46 }]), /100 miles/);
   assert.throws(() => validateSearchArea({ type: 'polygon', points: [...outline, { lat: NaN, lng: -89 }] }), /outline/);
+});
+
+test('100-mile areas validate, include distant facilities, and clamp resizing at the maximum', () => {
+  const large = { ...circle, radius: 100 * METERS_PER_MILE };
+  assert.equal(validateSearchArea(large), large);
+  assert.equal(containsPoint(large, { lng: -88, lat: 42 }), true);
+  assert.equal(containsPoint(large, { lng: -85, lat: 42 }), false);
+  assert.throws(() => validateSearchArea({ ...large, radius: large.radius + 1 }), /100 miles/);
+  assert.equal(resizeArea(circle, 'e', { lng: -85, lat: 42 }).radius, MAX_SEARCH_RADIUS_METERS);
+  const biggerOutline = createFreehandArea([{ lng: -89, lat: 42 }, { lng: -87, lat: 42 }, { lng: -89, lat: 44 }]);
+  assert.ok(biggerOutline.radius > 50000);
+  assert.ok(biggerOutline.radius <= MAX_SEARCH_RADIUS_METERS);
 });
 
 test('moving a circle preserves its radius and translates all polygon vertices', () => {

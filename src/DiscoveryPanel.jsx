@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { containsPoint, isFreehand, METERS_PER_MILE } from './search-area.js';
+import { containsPoint, isFreehand, METERS_PER_MILE, MAX_SEARCH_RADIUS_MILES } from './search-area.js';
 import { DISCOVERY_CATEGORIES, parseDiscoveryRequest, prepareDiscoveredLocations, searchArea, clearDiscoveryCache } from './discovery.js';
 
 import SearchProviderConnection from './SearchProviderConnection.jsx';
@@ -7,7 +7,7 @@ import { loadProviderConnection, providerRequest } from './search-provider.js';
 import { TOMTOM_CATEGORIES } from './tomtom-search.js';
 
 const EMPTY = [];
-export default function DiscoveryPanel({ area, drawing, ready, locations, onDraw, onCancelDraw, onAreaChange, onResults, onFocus, onAdd, onClose, activeResult, shapeError }) {
+export default function DiscoveryPanel({ area, drawing, ready, locations, onDraw, onCancelDraw, onAreaChange, onRemoveArea, onResults, onFocus, onAdd, onClose, activeResult, shapeError }) {
   const [connection, setConnection] = useState(loadProviderConnection), [verified, setVerified] = useState(false);
   const [drawMode, setDrawMode] = useState(isFreehand(area) ? 'freehand' : 'circle');
   const [request, setRequest] = useState('Find manufacturers in this area');
@@ -62,11 +62,14 @@ export default function DiscoveryPanel({ area, drawing, ready, locations, onDraw
       <small className="account-storage-note">Import once. Your accounts stay saved in this browser when you refresh or return to the same site. No need to import again for each search. Use Backup to keep a copy or move to another browser or device; clearing site storage removes saved accounts.</small>
       <SearchProviderConnection connection={connection} verified={verified} busy={busy} onChange={setConnection}/>
       <div className="discovery-shape-modes" aria-label="Search area shape">{['circle', 'freehand'].map(mode => <button type="button" key={mode} aria-pressed={drawMode === mode} disabled={Boolean(drawing) || busy} onClick={() => setDrawMode(mode)}>{mode === 'circle' ? 'Circle' : 'Freehand'}</button>)}</div>
-      <button className="discovery-draw" disabled={!ready || busy} onClick={drawing ? onCancelDraw : () => onDraw(drawMode)}>{drawing ? 'Cancel drawing' : drawMode === 'freehand' ? isFreehand(area) ? 'Redraw freehand area' : 'Draw freehand area' : area && !isFreehand(area) ? 'Redraw circle' : 'Draw a circle'}</button>
+      <div className="discovery-area-actions">
+        <button className="discovery-draw" disabled={!ready || busy} onClick={drawing ? onCancelDraw : () => onDraw(drawMode)}>{drawing ? 'Cancel drawing' : drawMode === 'freehand' ? isFreehand(area) ? 'Redraw freehand area' : 'Draw freehand area' : area && !isFreehand(area) ? 'Redraw circle' : 'Draw a circle'}</button>
+        {area && !drawing && <button type="button" className="discovery-remove" onClick={() => { requestVersion.current++; controller.current?.abort(); onRemoveArea(); }}>Remove area</button>}
+      </div>
       {drawing && <p className="discovery-instruction" role="status">{drawing === 'freehand' ? 'Press and trace an outline. Release to close it. Esc cancels.' : 'Drag from the center to the edge. On touch, tap the center, then the edge. Esc cancels.'}</p>}
       {area && !drawing && <p className="discovery-edit-hint">Drag inside the area or its center handle to move it. Drag an edge handle to resize. Focus a handle and use arrow keys for small adjustments. Esc cancels a drag.</p>}
       {shapeError && <p className="discovery-error" role="alert">{shapeError}</p>}
-      {area && <>{isFreehand(area) ? <strong className="discovery-area-summary">Freehand area selected</strong> : <label className="discovery-radius">Radius <input aria-label="Search radius in miles" type="number" min="0.1" max="31.1" step="0.1" disabled={Boolean(drawing) || busy} value={+(area.radius / METERS_PER_MILE).toFixed(1)} onChange={event => { const miles = Number(event.target.value); if (miles >= 0.1 && miles <= 31.1) onAreaChange({ ...area, radius: Math.min(50000, miles * METERS_PER_MILE) }); }}/><span>mi</span></label>}<small className="discovery-area-summary">{inArea} saved {inArea === 1 ? 'location' : 'locations'} inside · within about 31 miles of center</small></>}
+      {area && <>{isFreehand(area) ? <strong className="discovery-area-summary">Freehand area selected</strong> : <label className="discovery-radius">Radius <input aria-label="Search radius in miles" type="number" min="0.1" max={MAX_SEARCH_RADIUS_MILES} step="0.1" disabled={Boolean(drawing) || busy} value={+(area.radius / METERS_PER_MILE).toFixed(1)} onChange={event => { const miles = Number(event.target.value); if (miles >= 0.1 && miles <= MAX_SEARCH_RADIUS_MILES) onAreaChange({ ...area, radius: miles * METERS_PER_MILE }); }}/><span>mi</span></label>}<small className="discovery-area-summary">{inArea} saved {inArea === 1 ? 'location' : 'locations'} inside · up to {MAX_SEARCH_RADIUS_MILES} miles from center</small></>}
       <form onSubmit={search}><label htmlFor="discovery-request">What would you like to find?</label><textarea id="discovery-request" rows="2" maxLength={200} value={request} disabled={busy} onChange={event => setRequest(event.target.value)} placeholder={tomtom ? 'Plastic manufacturers or machine shops' : 'Find manufacturers in this area'}/>
         {tomtom && <small className="discovery-understood">Search by business name or type. The buttons below are shortcuts.</small>}
         <div className="discovery-examples" aria-label="Business category suggestions">{DISCOVERY_CATEGORIES.map(item => <button key={item.id} type="button" disabled={busy} aria-pressed={category?.id === item.id} onClick={() => setRequest(`Find ${item.label.toLowerCase()} in this area`)}>{item.label}</button>)}</div>

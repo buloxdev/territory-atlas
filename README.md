@@ -122,7 +122,9 @@ Choose **Circle**, then **Draw a circle** and drag from its center to its edge,
 or tap the center then the edge on touch. Choose **Freehand** to trace an outline;
 releasing closes it. Drag the area or center handle to move it. Edge/corner
 handles resize it; focused handles support arrow keys and Shift for larger steps.
-Circle radii are entered in miles (0.1–31.1). Esc cancels a gesture. Changing the
+Circle radii are entered in miles (0.1–100). **Remove area** clears the circle or
+freehand outline and its search results while keeping business search open.
+Esc cancels a gesture. Changing the
 area, category, or provider clears old results and cancels outstanding searches.
 
 TomTom's Places Search v3 Discover endpoint receives the selected circle or

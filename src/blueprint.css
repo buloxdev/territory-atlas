@@ -376,6 +376,10 @@ body { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
 .discovery-shape-modes button[aria-pressed=true] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .discovery-draw, .discovery-submit { min-height: 42px; border-radius: 0; font: 700 10px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
 .discovery-draw { border: 1px dashed var(--fg); background: transparent; color: var(--fg); }
+.discovery-area-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.discovery-area-actions .discovery-draw { flex: 1 1 140px; width: auto; }
+.discovery-remove { flex: 1 1 100px; min-height: 42px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--fg); font: 700 10px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; cursor: pointer; }
+.discovery-remove:hover { border-color: var(--fg); }
 .discovery-submit { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); }
 .discovery-radius { color: var(--fg-muted); font: 9px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
 .discovery-radius input, .discovery-form textarea, .discovery-provider input, .discovery-provider select { border: 1px solid var(--line); border-radius: 0; background: var(--bg); color: var(--fg); }

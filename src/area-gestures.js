@@ -1,4 +1,4 @@
-import { areaCenter, areaHandles, containsPoint, createFreehandArea, distanceMeters, isFreehand, resizeArea, translateArea } from './search-area.js';
+import { areaCenter, areaHandles, containsPoint, createFreehandArea, distanceMeters, isFreehand, MAX_SEARCH_RADIUS_METERS, resizeArea, translateArea } from './search-area.js';
 
 // Map-library-specific work is confined to the adapter. Mouse, pen and touch
 // share the same gesture rules in the Leaflet and MapLibre views.
@@ -59,7 +59,7 @@ export function bindAreaGestures(adapter, getOptions) {
     host.setPointerCapture(event.pointerId); options.onError('');
     if (action.action === 'circle') {
       gesture.center = tappedCenter || start;
-      options.onAreaChange({ ...gesture.center, radius: tappedCenter ? Math.max(100, Math.min(50000, distanceMeters(tappedCenter, start))) : 100 });
+      options.onAreaChange({ ...gesture.center, radius: tappedCenter ? Math.max(100, Math.min(MAX_SEARCH_RADIUS_METERS, distanceMeters(tappedCenter, start))) : 100 });
     } else if (action.action === 'freehand') options.onPreview(gesture.points);
   };
   const update = event => {
@@ -72,7 +72,7 @@ export function bindAreaGestures(adapter, getOptions) {
     }
     try {
       let next;
-      if (gesture.action === 'circle') next = { ...gesture.center, radius: Math.max(100, Math.min(50000, distanceMeters(gesture.center, coordinate))) };
+      if (gesture.action === 'circle') next = { ...gesture.center, radius: Math.max(100, Math.min(MAX_SEARCH_RADIUS_METERS, distanceMeters(gesture.center, coordinate))) };
       else if (gesture.action === 'resize') next = resizeArea(gesture.original, gesture.handle, coordinate);
       else { const center = areaCenter(gesture.original); next = translateArea(gesture.original, { lng: center.lng + coordinate.lng - gesture.start.lng, lat: center.lat + coordinate.lat - gesture.start.lat }); }
       options.onAreaChange(next); options.onError('');

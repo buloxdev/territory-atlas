@@ -90,7 +90,7 @@ Both integrations require user-supplied credentials stored in sessionStorage,
 separately from territory data and backups. A public hosted application should
 protect shared credentials and limit aggregate usage. Keys supplied in a browser
 remain visible in network tools; apply provider restrictions and request caps.
-Searches are user initiated, bounded to about 31 miles (50 km), cancellable,
+Searches are user initiated, bounded to 100 miles (about 161 km) from the center, cancellable,
 and use timeouts. Retry-After is honored for rate limits and provider pauses;
 access errors do not impose an arbitrary cooldown. No background polling or
 automatic retry is performed. Verify facilities and entrances before visits.

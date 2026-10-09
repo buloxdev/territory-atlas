@@ -1,4 +1,6 @@
 export const METERS_PER_MILE = 1609.344;
+export const MAX_SEARCH_RADIUS_MILES = 100;
+export const MAX_SEARCH_RADIUS_METERS = MAX_SEARCH_RADIUS_MILES * METERS_PER_MILE;
 const EARTH_RADIUS = 6371008.8;
 const radians = value => value * Math.PI / 180;
 const coordinateValid = point => point && Number.isFinite(point.lng) && Math.abs(point.lng) <= 180 && Number.isFinite(point.lat) && Math.abs(point.lat) <= 85;
@@ -28,7 +30,7 @@ function intersects(a, b, c, d) {
 
 export function validateSearchArea(area) {
   if (!isFreehand(area)) {
-    if (!coordinateValid(area) || !Number.isFinite(area.radius) || area.radius < 100 || area.radius > 50000) throw new Error('Draw a circle with a radius between about 0.06 and 31.1 miles.');
+    if (!coordinateValid(area) || !Number.isFinite(area.radius) || area.radius < 100 || area.radius > MAX_SEARCH_RADIUS_METERS) throw new Error(`Draw a circle with a radius between about 0.06 and ${MAX_SEARCH_RADIUS_MILES} miles.`);
     return area;
   }
   const points = area.points;
@@ -40,7 +42,7 @@ export function validateSearchArea(area) {
     }
   }
   const center = areaCenter(area), extent = Math.max(...points.map(point => distanceMeters(center, point)));
-  if (extent > 50000) throw new Error('Keep the outline within about 31.1 miles of its center. Zoom in and draw a smaller area.');
+  if (extent > MAX_SEARCH_RADIUS_METERS) throw new Error(`Keep the outline within ${MAX_SEARCH_RADIUS_MILES} miles of its center. Zoom in and draw a smaller area.`);
   const signed = points.reduce((sum, a, i) => { const b = points[(i + 1) % points.length]; return sum + (a.lng - center.lng) * (b.lat - center.lat) - (b.lng - center.lng) * (a.lat - center.lat); }, 0);
   if (extent < 100 || Math.abs(signed) < 1e-8) throw new Error('The outline is too small or flat. Draw around a larger area.');
   return area;
@@ -116,7 +118,7 @@ export function areaHandles(area) {
   return [{ id: 'nw', lng: b.west, lat: b.north }, { id: 'ne', lng: b.east, lat: b.north }, { id: 'se', lng: b.east, lat: b.south }, { id: 'sw', lng: b.west, lat: b.south }];
 }
 export function resizeArea(area, handle, target) {
-  if (!isFreehand(area)) return { ...area, radius: Math.max(100, Math.min(50000, distanceMeters(area, target))) };
+  if (!isFreehand(area)) return { ...area, radius: Math.max(100, Math.min(MAX_SEARCH_RADIUS_METERS, distanceMeters(area, target))) };
   const b = areaBounds(area), east = handle.includes('e'), north = handle.includes('n');
   const anchor = { lng: east ? b.west : b.east, lat: north ? b.south : b.north };
   const width = b.east - b.west, height = b.north - b.south;

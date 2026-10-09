@@ -293,7 +293,8 @@ function App() {
   const startAreaDrawing = (mode = 'circle') => {
     areaBeforeDrawing.current = area; leafletMap?.stop(); setSelectedId(null); setShapeError(''); setDrawing(mode);
   };
-  const closeBusinessSearch = () => { setDiscoveryOpen(false); setArea(null); setDrawing(false); setDiscoveryResults([]); setShapeError(''); setActiveResult(null); };
+  const removeBusinessSearchArea = () => { areaBeforeDrawing.current = null; setArea(null); setDrawing(false); setDiscoveryResults([]); setShapeError(''); setActiveResult(null); };
+  const closeBusinessSearch = () => { setDiscoveryOpen(false); removeBusinessSearchArea(); };
   const addDiscovered = rows => {
     const result = mergeDiscoveredLocations(locations, rows);
     setLocations(result.locations); return result;
@@ -386,7 +387,7 @@ function App() {
 
       <section className={`workspace ${ledgerCollapsed && !discoveryOpen ? 'is-ledger-collapsed' : ''} ${discoveryOpen ? 'is-discovering' : ''}`}>
         <aside className="ledger">
-          {discoveryOpen ? <DiscoveryPanel area={area} drawing={drawing} ready={Boolean(leafletMap)} locations={locations} onDraw={startAreaDrawing} onCancelDraw={() => { setArea(areaBeforeDrawing.current); setDrawing(false); }} onAreaChange={setArea} onResults={setDiscoveryResults} onFocus={focusDiscovered} onAdd={addDiscovered} onClose={closeBusinessSearch} activeResult={activeResult} shapeError={shapeError}/> : <>
+          {discoveryOpen ? <DiscoveryPanel area={area} drawing={drawing} ready={Boolean(leafletMap)} locations={locations} onDraw={startAreaDrawing} onCancelDraw={() => { setArea(areaBeforeDrawing.current); setDrawing(false); }} onAreaChange={setArea} onRemoveArea={removeBusinessSearchArea} onResults={setDiscoveryResults} onFocus={focusDiscovered} onAdd={addDiscovered} onClose={closeBusinessSearch} activeResult={activeResult} shapeError={shapeError}/> : <>
           <div className="ledger-top">
             <div className="ledger-label-row">
               <SheetHead number="SHEET 2" title="Account schedule" note={`${String(locations.length).padStart(2, '0')} LOC`} as="p" />

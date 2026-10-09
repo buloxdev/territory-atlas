@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createProviderConnection, providerRequest, loadProviderConnection, saveProviderConnection } from '../src/search-provider.js';
 import { buildTomTomRequest } from '../src/tomtom-search.js';
+import { MAX_SEARCH_RADIUS_METERS } from '../src/search-area.js';
 import { parseDiscoveryRequest, searchArea, prepareDiscoveredLocations, mergeDiscoveredLocations } from '../src/discovery.js';
 
 const area = { lat: 42.2711, lng: -89.094, radius: 8046.72 };
@@ -30,7 +31,8 @@ test('TomTom constrains circle and freehand searches to the drawn boundary with 
   assert.deepEqual(outline.filters.poiTypes,['import_or_export_and_distribution']);
   assert.equal(buildTomTomRequest(area,'warehouses').query,'warehouse');
   assert.equal(buildTomTomRequest(area,'food').query,'food');
-  assert.throws(()=>buildTomTomRequest({...area,radius:50001},'manufacturers'),/31.1 miles/);
+  assert.equal(buildTomTomRequest({...area,radius:MAX_SEARCH_RADIUS_METERS},'manufacturers').filters.geometry.radiusInMeters,160934);
+  assert.throws(()=>buildTomTomRequest({...area,radius:MAX_SEARCH_RADIUS_METERS+1},'manufacturers'),/100 miles/);
   assert.throws(()=>buildTomTomRequest(area,'injected'),/category/);
 });
 

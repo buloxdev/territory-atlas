@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseDiscoveryRequest, buildDiscoveryQuery, circleFeature, distanceMeters, prepareDiscoveredLocations, mergeDiscoveredLocations, searchArea } from '../src/discovery.js';
-import { areaBounds } from '../src/search-area.js';
+import { areaBounds, MAX_SEARCH_RADIUS_METERS } from '../src/search-area.js';
 import { parseBackup } from '../src/locations.js';
 
 const area = { lng: -89.094, lat: 42.2711, radius: 5000 };
@@ -30,7 +30,9 @@ test('queries a bounded circle with fixed category filters, never interpolating 
   assert.ok(!query.includes('around:'));
   assert.match(query, /man_made/);
   assert.match(query, /out center tags 200/);
-  assert.throws(() => buildDiscoveryQuery({ ...area, radius: 50001 }, 'manufacturers'), /31.1 miles/);
+  const largeArea = { ...area, radius: MAX_SEARCH_RADIUS_METERS }, largeBounds = areaBounds(largeArea);
+  assert.ok(buildDiscoveryQuery(largeArea, 'manufacturers').includes(`(${largeBounds.south},${largeBounds.west},${largeBounds.north},${largeBounds.east})`));
+  assert.throws(() => buildDiscoveryQuery({ ...area, radius: MAX_SEARCH_RADIUS_METERS + 1 }, 'manufacturers'), /100 miles/);
   assert.throws(() => buildDiscoveryQuery({ ...area, lng: 'bad' }, 'manufacturers'), /circle/);
   assert.throws(() => buildDiscoveryQuery(area, 'arbitrary'), /category/);
 });
