@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.playwright-cli/
+output/
+.DS_Store
+
+# Personal data, credentials, and machine-specific artifacts
+local-data/
+.env
+.env.*
+!.env.example
+*.log
+*.app/
+*.csv
+*.xlsx
+!examples/*.csv
+!public/accounts-template.csv
+
+# Public releases are built from source, not copied from the desktop bundle.
+coverage/
+test-results/
+playwright-report/
