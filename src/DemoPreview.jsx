@@ -15,7 +15,7 @@ export default function DemoPreview({ onOpen }) {
       const company = document.createElement('strong'); company.textContent = location.company;
       const details = document.createElement('div'); details.textContent = `${location.status} · ${location.city}, ${location.state}`;
       label.append(company, details);
-      L.circleMarker([location.lat, location.lng], { radius: 7, color: '#ffffff', weight: 2, fillColor: location.status === 'Customer' ? '#ffb000' : '#117f6b', fillOpacity: 1 }).bindPopup(label).addTo(map);
+      L.circleMarker([location.lat, location.lng], { radius: 6, color: '#ffffff', weight: 2, fillColor: location.status === 'Customer' ? '#ffffff' : '#0b2a5b', fillOpacity: 1 }).bindPopup(label).addTo(map);
     }
     map.fitBounds(DEMO_LOCATIONS.map(location => [location.lat, location.lng]), { padding: [30, 30], maxZoom: 6 });
     const observer = new ResizeObserver(() => map.invalidateSize({ pan: false }));

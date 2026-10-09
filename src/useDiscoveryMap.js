@@ -9,10 +9,10 @@ export default function useDiscoveryMap(mapRef, ready, { area, results, onPick }
     const map = mapRef.current;
     if (!ready || !map) return;
     map.addSource('discovery-area', { type: 'geojson', data: collection([]) });
-    map.addLayer({ id: 'discovery-fill', type: 'fill', source: 'discovery-area', paint: { 'fill-color': '#e59b19', 'fill-opacity': .12 } });
-    map.addLayer({ id: 'discovery-outline', type: 'line', source: 'discovery-area', paint: { 'line-color': '#b46a00', 'line-width': 3, 'line-dasharray': [3, 2] } });
+    map.addLayer({ id: 'discovery-fill', type: 'fill', source: 'discovery-area', paint: { 'fill-color': '#ffc857', 'fill-opacity': .12 } });
+    map.addLayer({ id: 'discovery-outline', type: 'line', source: 'discovery-area', paint: { 'line-color': '#ffc857', 'line-width': 2, 'line-dasharray': [3, 2] } });
     map.addSource('discovery-results', { type: 'geojson', data: collection([]) });
-    map.addLayer({ id: 'discovery-points', type: 'circle', source: 'discovery-results', paint: { 'circle-radius': 8, 'circle-color': ['case', ['get', 'duplicate'], '#788d8a', '#eb961c'], 'circle-stroke-width': 2, 'circle-stroke-color': '#fffdf4' } });
+    map.addLayer({ id: 'discovery-points', type: 'circle', source: 'discovery-results', paint: { 'circle-radius': 8, 'circle-color': ['case', ['get', 'duplicate'], '#7f9cc7', '#ffc857'], 'circle-stroke-width': 2, 'circle-stroke-color': '#0b2a5b' } });
     const pick = event => current.current.onPick(event.features[0].properties.id);
     map.on('click', 'discovery-points', pick);
     const handlers = [map.dragPan, map.touchZoomRotate, map.doubleClickZoom, map.boxZoom, map.dragRotate, map.scrollZoom, map.keyboard];

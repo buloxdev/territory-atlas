@@ -26,14 +26,14 @@ export default function useLeafletDiscoveryMap(map, { area, results, onPick }) {
   useEffect(() => {
     const layer = areaLayer.current; if (!layer) return;
     layer.clearLayers();
-    if (area) L.geoJSON(areaFeature(area), { interactive: false, style: { color: '#b46a00', weight: 3, dashArray: '9 6', fillColor: '#e59b19', fillOpacity: .12 } }).addTo(layer);
+    if (area) L.geoJSON(areaFeature(area), { interactive: false, style: { color: '#ffc857', weight: 2, dashArray: '9 6', fillColor: '#ffc857', fillOpacity: .12 } }).addTo(layer);
   }, [area, map]);
   useEffect(() => {
     const layer = resultLayer.current; if (!layer) return;
     layer.clearLayers();
     for (const row of results) {
       const label = document.createElement('span'); label.textContent = row.company;
-      L.circleMarker([row.lat, row.lng], { radius: 8, color: '#fffdf4', weight: 2, fillColor: row.duplicate ? '#788d8a' : '#eb961c', fillOpacity: 1, className: 'discovery-result-marker' })
+      L.circleMarker([row.lat, row.lng], { radius: 8, color: '#0b2a5b', weight: 2, fillColor: row.duplicate ? '#7f9cc7' : '#ffc857', fillOpacity: 1, className: 'discovery-result-marker' })
         .bindTooltip(label).on('click', () => current.current.onPick(row.id)).addTo(layer);
     }
   }, [results, map]);

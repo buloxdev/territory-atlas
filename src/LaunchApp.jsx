@@ -5,6 +5,8 @@ import { prepareImportRows, readImportTable } from './import.js';
 import './launch.css';
 import DemoPreview from './DemoPreview.jsx';
 import TomTomKeySteps from './TomTomKeySteps.jsx';
+import { Crosshair, Crosses, Ruler, SheetHead, TerritoryDrawing, TitleBlock, drawingCounts } from './Blueprint.jsx';
+import { version } from '../package.json';
 
 const TerritoryContext = createContext(null);
 export const useTerritory = () => useContext(TerritoryContext);
@@ -110,15 +112,55 @@ export default function LaunchApp({ children }) {
     catch (failure) { setWorkspace(current => ({ ...current, error: failure.message })); }
   }
   const backup = () => download(JSON.stringify(locations, null, 2), `territory-atlas-${mode === 'demo' ? 'demo-' : ''}${new Date().toISOString().slice(0, 10)}.json`);
-  const welcome = <div className="launch-welcome"><div className="launch-hero"><div className="launch-intro"><span className="launch-eyebrow">TERRITORY ATLAS · FREE & OPEN SOURCE</span><h1>Your accounts.<br/>Your territory.</h1><p>Turn your spreadsheet into a map. See customers and prospects, explore nearby businesses, and plan your next visit.</p><p className="launch-muted">No login. Your accounts stay saved in this browser.</p><DemoPreview onOpen={() => start('demo')}/></div><div className="launch-choices">
-    <button onClick={() => start('demo')}><strong>Try the demo <span>↗</span></strong><small>Explore ten fictional accounts. Your territory stays separate.</small></button>
-    <button onClick={() => openImport()}><strong>Import your accounts <span>↗</span></strong><small>Upload Excel or CSV. Get a template and review every row.</small></button>
-    <button onClick={() => openImport('restore')}><strong>Restore a backup <span>↗</span></strong><small>Bring your saved territory from another browser or device.</small></button>
-    <button className="launch-link" onClick={() => start('territory')}>Open my territory{mode ? '' : ' / start empty'}</button>
-    {mode && <button className="launch-link" onClick={() => setMenu(false)}>Return to map</button>}
-    <p className="launch-muted">TomTom search is optional and uses your own API key. The map, imports, and backups work without one.</p><button className="launch-link" onClick={() => setModal('privacy')}>Privacy & data</button>
-  </div></div>
-    <section className="launch-key-guide" aria-labelledby="tomtom-guide-title"><div><span className="launch-eyebrow">OPTIONAL BUSINESS SEARCH</span><h2 id="tomtom-guide-title">Get a TomTom key in four steps.</h2><p>The map, imports, and backups work without a key. Connect your own key when you want to search for nearby businesses.</p></div><TomTomKeySteps/></section>
+  const welcome = <div className="launch-welcome">
+    <header className="bp-masthead">
+      <div className="bp-wordmark"><Crosshair/><strong>Territory Atlas</strong><span className="bp-dwg">DWG TA-001 · REV {version} · MIT</span></div>
+      <nav aria-label="Get started">
+        <button onClick={() => start('demo')}>Demo</button>
+        <button onClick={() => openImport()}>Import</button>
+        <button onClick={() => openImport('restore')}>Restore</button>
+        <button onClick={() => setModal('privacy')}>Privacy & data</button>
+        {mode ? <button className="bp-btn fill small" onClick={() => setMenu(false)}>Return to map</button> : <button className="bp-btn fill small" onClick={() => start('territory')}>Open my territory</button>}
+      </nav>
+    </header>
+    <Ruler/>
+    <div className="launch-sheets">
+      <section className="launch-hero" aria-labelledby="launch-title">
+        <div className="launch-intro">
+          <SheetHead number="SHEET 1 OF 3" title="General arrangement" note="Free · open source" as="p"/>
+          <h1 id="launch-title">Your accounts.<br/>Your <mark className="bp-mark">territory.</mark></h1>
+          <p className="launch-lede">Turn your spreadsheet into a map. See customers and prospects, explore nearby businesses, and plan your next visit.</p>
+          <div className="launch-actions">
+            <button className="bp-btn fill" onClick={() => start('demo')}>Try the demo <span aria-hidden="true">↗</span></button>
+            <button className="bp-btn" onClick={() => openImport()}>Import accounts</button>
+            <button className="bp-btn ghost" onClick={() => openImport('restore')}>Restore backup</button>
+          </div>
+          <div className="launch-secondary">
+            <button className="launch-link" onClick={() => start('territory')}>Open my territory{mode ? '' : ' / start empty'}</button>
+            {mode && <button className="launch-link" onClick={() => setMenu(false)}>Return to map</button>}
+          </div>
+          <p className="launch-muted">The demo uses ten fictional accounts and stays separate from your territory. TomTom search is optional and uses your own API key; the map, imports, and backups work without one.</p>
+          <dl className="bp-notes">
+            <div><dt>NOTE 1 · LOGIN</dt><dd>None required</dd></div>
+            <div><dt>NOTE 2 · STORAGE</dt><dd>This browser only</dd></div>
+            <div><dt>NOTE 3 · SEARCH KEY</dt><dd>Optional, yours</dd></div>
+          </dl>
+        </div>
+        <figure className="launch-drawing">
+          <div className="bp-drawing-panel"><Crosses/><TerritoryDrawing locations={DEMO_LOCATIONS} label="DETAIL A · DEMO TERRITORY"/></div>
+          <TitleBlock rows={[['PROJECT', 'TERRITORY ATLAS'], ['DRAWN BY', 'YOU, LOCALLY'], ['REVISION', version, true], ['SCALE', 'SCHEMATIC'], ['LOCATIONS', drawingCounts(DEMO_LOCATIONS)], ['STATUS', 'FICTIONAL DEMO']]}/>
+        </figure>
+      </section>
+      <section className="launch-sheet" aria-labelledby="demo-preview-title">
+        <SheetHead number="SHEET 2 OF 3" title="Live preview" note="Ten fictional accounts · city centers" as="p"/>
+        <DemoPreview onOpen={() => start('demo')}/>
+      </section>
+      <section className="launch-sheet" aria-labelledby="tomtom-guide-title">
+        <SheetHead number="SHEET 3 OF 3" title="General notes" note="Optional business search" as="p"/>
+        <div className="launch-key-guide"><div><span className="launch-eyebrow">NOTE 4 · TOMTOM KEY</span><h2 id="tomtom-guide-title">Get a TomTom key in four steps.</h2><p>The map, imports, and backups work without a key. Connect your own key when you want to search for nearby businesses.</p></div><TomTomKeySteps/></div>
+      </section>
+      <footer className="launch-colophon"><span>All dimensions in statute miles · Coordinates at city centers until verified</span><span>Do not scale from screen</span></footer>
+    </div>
   </div>;
   return <TerritoryContext.Provider value={{ locations, mode, setLocations: updater => setWorkspace(current => ({ ...current, locations: typeof updater === 'function' ? updater(current.locations) : updater })), openImport, backup }}>
     <div className="launch-root">

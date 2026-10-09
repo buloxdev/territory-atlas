@@ -4,7 +4,6 @@ import L from 'leaflet';
 import Building2 from 'lucide-react/dist/esm/icons/building-2.mjs';
 import ChevronLeft from 'lucide-react/dist/esm/icons/chevron-left.mjs';
 import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right.mjs';
-import CircleDot from 'lucide-react/dist/esm/icons/circle-dot.mjs';
 import Download from 'lucide-react/dist/esm/icons/download.mjs';
 import LocateFixed from 'lucide-react/dist/esm/icons/locate-fixed.mjs';
 import MapPin from 'lucide-react/dist/esm/icons/map-pin.mjs';
@@ -24,10 +23,13 @@ import DiscoveryPanel from './DiscoveryPanel.jsx';
 import AreaControls from './AreaControls.jsx';
 import useLeafletDiscoveryMap from './useLeafletDiscoveryMap.js';
 import { mergeDiscoveredLocations } from './discovery.js';
+import { Crosshair } from './Blueprint.jsx';
+import './blueprint.css';
 
+// Blueprint ink: customers are solid white, prospects a lighter drafting blue drawn hollow.
 const COLORS = {
-  Customer: '#ffb000',
-  Prospect: '#35e6c4',
+  Customer: '#ffffff',
+  Prospect: '#8fb6ec',
 };
 
 const LOCATION_TYPES = [
@@ -50,7 +52,7 @@ function markerIcon(location, selected) {
   const color = COLORS[location.status] || COLORS.Prospect;
   return L.divIcon({
     className: 'terminal-marker-wrap',
-    html: `<span class="terminal-marker ${selected ? 'is-selected' : ''}" style="--marker:${color}"><i></i></span>`,
+    html: `<span class="terminal-marker is-${location.status === 'Customer' ? 'customer' : 'prospect'} ${selected ? 'is-selected' : ''}" style="--marker:${color}"><i></i></span>`,
     iconSize: selected ? [34, 34] : [26, 26],
     iconAnchor: selected ? [17, 17] : [13, 13],
   });
@@ -347,10 +349,10 @@ function App() {
     <main className="app-shell">
       <header className="command-bar">
         <div className="brand-block">
-          <span className="brand-mark"><CircleDot size={18} /></span>
+          <span className="brand-mark"><Crosshair /></span>
           <div>
-            <strong>TERRITORY ATLAS</strong>
-            <small>UNITED STATES // LIVE MAP</small>
+            <strong>Territory Atlas</strong>
+            <small>DWG TA-003 · MANAGE LOCATIONS</small>
           </div>
         </div>
         <div className="market-line">
